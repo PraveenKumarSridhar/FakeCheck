@@ -8,8 +8,10 @@ import os
 model = tf.keras.models.load_model('vgg19_retrained.h5')
 labels = {0: 'fake', 1: 'real'}
 
-
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB limit
+MAX_IMAGE_WIDTH = 2000
+MAX_IMAGE_HEIGHT = 2000
+
 
 def prepare_image(img):
     img = img.resize((224, 224))
@@ -35,6 +37,13 @@ def run():
                 return
 
             img = Image.open(img_file).convert('RGB')
+
+            # Check image dimensions to prevent DoS
+            width, height = img.size
+            if width > MAX_IMAGE_WIDTH or height > MAX_IMAGE_HEIGHT:
+                st.error(f"Image dimensions exceed the maximum allowed size of {MAX_IMAGE_WIDTH}x{MAX_IMAGE_HEIGHT} pixels.")
+                return
+
             st.image(img, use_column_width=False)
 
             # Use a safe directory and ensure it exists
