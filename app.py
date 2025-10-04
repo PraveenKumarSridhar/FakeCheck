@@ -9,6 +9,8 @@ model = tf.keras.models.load_model('vgg19_retrained.h5')
 labels = {0: 'fake', 1: 'real'}
 
 
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB limit
+
 def prepare_image(img):
     img = img.resize((224, 224))
     img = img_to_array(img)
@@ -24,6 +26,14 @@ def run():
     img_file = st.file_uploader("Choose an Image", type=["jpg", "png"])
     if img_file is not None:
         try:
+            # Check file size before processing
+            img_file.seek(0, os.SEEK_END)
+            file_size = img_file.tell()
+            img_file.seek(0)
+            if file_size > MAX_FILE_SIZE:
+                st.error(f"File size exceeds the maximum allowed size of {MAX_FILE_SIZE // (1024*1024)} MB.")
+                return
+
             img = Image.open(img_file).convert('RGB')
             st.image(img, use_column_width=False)
 
